@@ -14,25 +14,24 @@ import sys
 
 WIKIDATA_DAY_FORMAT = '+%Y-%m-%dT00:00:00Z/11'
 
-def load_previous(filenames):
+def load_previous(filename):
     previous = []
-    for filename in filenames:
-        try:
-            with open(filename) as f:
-                reader = csv.reader(f, dialect=csv.excel_tab)
-                for row in reader:
-                    try:
-                        qid = row[0]
-                        value = row[2]
-                    except IndexError:
-                        # If line is empty
-                        continue
-                    previous.append((qid, value))
-        except FileNotFoundError:
-            pass
+    try:
+        with open(filename) as f:
+            reader = csv.reader(f, dialect=csv.excel_tab)
+            for row in reader:
+                try:
+                    qid = row[0]
+                    value = row[2]
+                except IndexError:
+                    # If line is empty
+                    continue
+                previous.append((qid, value))
+    except FileNotFoundError:
+        pass
     return previous
 
-def get_clean_response(query, user_agent=None, previous_filenames=[]):
+def get_clean_response(query, user_agent=None, previous_filename=None):
     if not user_agent:
         user_agent = "WDQS-example Python/%s.%s" % (sys.version_info[0], sys.version_info[1])
 
@@ -60,8 +59,8 @@ def get_clean_response(query, user_agent=None, previous_filenames=[]):
         index += 1
 
     # Removal of previous encounter
-    if previous_filenames:
-        previous = load_previous(previous_filenames)
+    if previous_filename:
+        previous = load_previous(previous_filename)
     else:
         previous = []
 
@@ -96,7 +95,7 @@ def get_next_startswith(startswith, chars, skip_until=False):
     print(f"Returning \"{startswith}\" as a startswith...")
     return startswith
 
-def get_results(query, previous_filenames=[], last_filename=None,
+def get_results(query, previous_filename=None, last_filename=None,
                 extra_chars="", user_agent=None,
                 verbose=True):
     # Check if the query is incremental
@@ -122,13 +121,17 @@ def get_results(query, previous_filenames=[], last_filename=None,
                                                  skip_until=True)
                 continue
 
-            print("requesting", startswith)
+            if startswith:
+                print(f"Getting items that start with \"{startwith}\"...")
+            else:
+                print("Getting items without a STARTSWITH filter...")
+
             results, unclean_count = get_clean_response(query % startswith,
                                                         user_agent,
-                                                        previous_filenames)
+                                                        previous_filename)
             if unclean_count < 3000:
                 if verbose:
-                    print(f"We got {unclean_count} results using {startswith}.")
+                    print(f"We got {unclean_count} results ({len(results)} cleaned).")
 
                 for result in results:
                     yield result
@@ -149,5 +152,5 @@ def get_results(query, previous_filenames=[], last_filename=None,
                     startswith += char            
     else:
         results = get_clean_query(query, user_agent,
-                                  previous_filenames)
+                                  previous_filename)
         return results
