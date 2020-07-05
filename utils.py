@@ -6,10 +6,10 @@
 
 from SPARQLWrapper import SPARQLWrapper, JSON
 from http.client import HTTPException
+from urllib.error import URLError
 import csv
 import string
 import sys
-import urllib
 
 
 WIKIDATA_DAY_FORMAT = '+%Y-%m-%dT00:00:00Z/11'
@@ -45,7 +45,7 @@ def get_clean_response(query, user_agent=None, previous_filenames=[]):
     while trials < 10:
         try:
             response = sparql.query().convert()
-        except (ConnectionError, urllib.error.URLError, HTTPException) as e:
+        except (ConnectionError, URLError, HTTPException) as e:
             print(f"Error: {e}")
             trials += 1
         break
