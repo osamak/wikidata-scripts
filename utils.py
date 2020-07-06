@@ -102,15 +102,12 @@ def get_clean_response(query, user_agent=None, previous_filename=None,
 
     return clean_results, len(response['results']['bindings'])
 
-def get_next_startswith(startswith, chars, skip_until=False):
+def get_next_startswith(startswith, chars):
     while True:
-        if skip_until and len(startswith) == 0:
+        if len(startswith) == 0:
             startswith = chars[0]
         elif len(startswith) == 0:
             return
-        elif skip_until and startswith[-1] == chars[-1]:
-            startswith += chars[0]
-            break
         elif startswith[-1] == chars[-1]:
             # If we reached the end of one level
             # (e.g. 4-letter), move back to the level before
