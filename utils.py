@@ -108,6 +108,9 @@ def get_next_startswith(startswith, chars, skip_until=False):
             startswith = chars[0]
         elif len(startswith) == 0:
             return
+        elif skip_until and startswith[-1] == chars[-1]:
+            startswith += chars[0]
+            break
         elif startswith[-1] == chars[-1]:
             # If we reached the end of one level
             # (e.g. 4-letter), move back to the level before
@@ -136,17 +139,11 @@ def get_results(query, previous_filename=None, last_filename=None,
             skip_until = None
 
         chars = string.ascii_letters + string.digits + '_' + extra_chars
-        startswith = ""
+        if skip_until:
+            startswith = skip_until
+        else:
+            startswith = ""
         while True:
-            if skip_until == startswith:
-                skip_until = False
-            elif skip_until:
-                if verbose:
-                    print(f"Skipping {startswith}...")
-                startswith = get_next_startswith(startswith, chars,
-                                                 skip_until=True)
-                continue
-
             if verbose:
                 if startswith:
                     print(f"Getting items that start with \"{startswith}\"...")
