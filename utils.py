@@ -13,10 +13,11 @@ import csv
 import json
 import string
 import sys
+import time
 
 
 WIKIDATA_DAY_FORMAT = '+%Y-%m-%dT00:00:00Z/11'
-TODAY = date.today().strftime('+%Y-%m-%dT00:00:00Z/11')
+TODAY = date.today().strftime(WIKIDATA_DAY_FORMAT)
 
 def load_ignored(filename=None):
     ignored_users = {}
