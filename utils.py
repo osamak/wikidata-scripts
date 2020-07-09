@@ -26,7 +26,7 @@ def load_ignored(filename=None):
         try:
             with open(filename) as ignored_file:
                 ignored_users = json.load(ignored_file)
-        except FileNotFoundError:
+        except (FileNotFoundError, json.decoder.JSONDecodeError):
             with open(filename, 'w') as ignored_file:
                 json.dump(ignored_users, ignored_file)
     return ignored_users
@@ -67,14 +67,12 @@ def get_clean_response(query, user_agent=None, previous_filename=None,
     sparql.setReturnFormat(JSON)
 
     results = []
-    trials = 0
-    while trials < 10:
+    while True:
         try:
             response = sparql.query().convert()
         except (EndPointInternalError, ConnectionError, URLError, HTTPException) as e:
             print(f"Error: {e}.  Sleeping for 30 seconds...")
             time.sleep(30)
-            trials += 1
         break
 
     results = response['results']['bindings']
@@ -178,8 +176,9 @@ def get_results(query, previous_filename=None, last_filename=None,
                           "get more specific.  Working with "
                           f"{startswith}...")
     else:
-        results = get_clean_query(query, user_agent,
-                                  previous_filename,
-                                  ignored_filename,
-                                  verbose=verbose)
-        return results
+        results = get_clean_response(query, user_agent,
+                                     previous_filename,
+                                     ignored_filename,
+                                     verbose=verbose)
+        for result in results[0]:
+            yield result
